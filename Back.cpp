@@ -4,13 +4,13 @@
 
 const int ALPH = 26;
 
-void Cast(node_pol *&P) {
-  double coef = P->coef;
-  for (node_pol *q = P; q != nullptr; q = q->next) {
-    q->coef = q->coef / coef;
-  }
-  return;
-}
+//void Cast(node_pol *&P) {
+//  double coef = P->coef;
+//  for (node_pol *q = P; q != nullptr; q = q->next) {
+//    q->coef = q->coef / coef;
+//  }
+//  return;
+//}
 
 void ins(node_pol *&res, node_pol *&end, node_pol *&p) {
   node_pol *temp = p;
@@ -300,7 +300,8 @@ node_pol *CreatePol(std::string input) {
       delete q;
       continue;
     }
-    q->coef = std::stod(str);
+    q->numerator = std::stod(str);
+    q->denominator = 1;
     str = "";
     while (input[i] != '-' && input[i] != '+' && i < input.length()) {
       int let = input[i] - 'a';
@@ -336,9 +337,9 @@ node_pol *CreatePol(std::string input) {
   for (node_pol *t = P; t != nullptr;) {
     if (t->next != nullptr) {
       if (t->hash == t->next->hash) {
-        t->coef = t->coef + t->next->coef;
+        t->numerator = t->numerator + t->next->numerator;
         DeleteFromPol(P, t->next, 1);
-        if (t->coef == 0) {
+        if (t->numerator == 0) {
           DeleteFromPol(P, t, 2);
         } else {
           t = t->next;

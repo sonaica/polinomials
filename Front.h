@@ -42,7 +42,7 @@ class Field {
     void SetField(double input_x, double input_y, int input_heigth, int input_width, bool input_clicked);
     void SetColor(int input_r, int input_g, int input_b);
     void SetFrame(int input_frame, int input_frame_r, int input_frame_g, int input_frame_b);
-    void DrawField(sf::RenderWindow &window);
+    void DrawField(sf::RenderWindow &window, double &coord_y);
     bool OnClicked(sf::Event &event);
     void SetText(std::string input_text);
     void SetColorText(bool input_color);

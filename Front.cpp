@@ -118,7 +118,7 @@ void Field::SetFrame(int input_frame, int input_frame_r, int input_frame_g,
   return;
 }
 
-void Field::DrawField(sf::RenderWindow& window) {
+void Field::DrawField(sf::RenderWindow& window, double &coord_y) {
   if (text.size() != 0) {
     int count = (width - 4) / 11;
     while (text[text.size() - 1].length() > count) {
@@ -148,7 +148,8 @@ void Field::DrawField(sf::RenderWindow& window) {
     text_r = 255;
   }
   for (int i = 0; i < text.size(); ++i) {
-    PrintText(window, 52, 51 + i * 20, text[i], text_r, 0, 0);
+    PrintText(window, 52, coord_y, text[i], text_r, 0, 0);
+    coord_y += 20;
   }
   return;
 }
@@ -248,15 +249,16 @@ void Interface(sf::RenderWindow& window) {
   button_clear.DrawButton(window);
   button_clear.SetText("CLEAR", window, 255, 255, 255);
 
+  double coord_y = 0;
   Field field_in(50, 50, 500, 700, false);
   field_in.SetColor(255, 255, 255);
   field_in.SetFrame(2, 105, 105, 105);
-  field_in.DrawField(window);
+  field_in.DrawField(window, coord_y);
 
   Field field_out(600, 380, 550, 260, false);
   field_out.SetColor(255, 255, 255);
   field_out.SetFrame(2, 105, 105, 105);
-  field_out.DrawField(window);
+  field_out.DrawField(window, coord_y);
 
   return;
 }
@@ -272,7 +274,8 @@ void Interface_enter(sf::RenderWindow& window, std::string input) {
   else {
     field_enter.SetColor(255, 255, 255);
   }
-  field_enter.DrawField(window);
+  double coord_y = 0;
+  field_enter.DrawField(window, coord_y);
   PrintText(window, 50, 32, "Enter a polinomial:", 0, 0, 0);
   PrintText(window, 52, 116, input, 0, 0, 0);
 
@@ -319,29 +322,26 @@ void Information_window(std::string input, std::string error) {
 std::vector<Field> printpol;
 
 void UpdatePolinomials(node_list*&L) { 
+  int k = 0;
   for (node_list* p = L; p != nullptr; p = p->next) {
     std::string pol_str = "";
     for (node_pol* q = p->pol; q != nullptr; q = q->next) {
-      if (q->coef > 0 && pol_str.length() != 0) {
+      if (double(q->numerator) / q->denominator > 0 && pol_str.length() != 0) {
         pol_str += '+';
       }
 
-      // если коеф не 0
-      // если знаменатель 1 то просто число, иначе округление до сотых
-      std::stringstream stream;
-      stream << std::fixed << std::setprecision(2) << q->coef;
-      std::string s = stream.str();
       std::string res = "";
-      bool f = false;
-      for (int i = s.length() - 1; i >= 0; --i) {
-        if (f) res += s[i];
-        else if (s[i] == '.') f = true;
-        else if (s[i] != '0') {
-          f = true;
-          res += s[i];
+      if (q->numerator != 0) {
+        if (q->denominator == 1) {
+          res = std::to_string(q->numerator);
+        } else {
+          std::stringstream stream;
+          stream << std::fixed << std::setprecision(2)
+                 << double(q->numerator) / q->denominator;
+          std::string s = stream.str();
         }
       }
-      std::reverse(res.begin(), res.end());
+     
       pol_str += res;
 
       for (int i = 0; i < q->power.size(); ++i) {
@@ -354,17 +354,19 @@ void UpdatePolinomials(node_list*&L) {
         }
       }
     }
-    Field field(50, 50, 500, 0, false);
+    Field field(50, 50 + k * 20, 500, 0, false);
     field.SetColor(255, 255, 255);
     field.SetText(pol_str);
     printpol.push_back(field);
+    ++k;
   }
   return;
 }
 
 void PrintPolinomials(sf::RenderWindow& window) {
+  double coord_y = 51;
   for (int i = 0; i < printpol.size(); ++i) {
-    printpol[i].DrawField(window);
+    printpol[i].DrawField(window, coord_y);
   }
   return;
 }

@@ -11,7 +11,7 @@ struct CheckReturn {
 };
 
 struct node_pol {
-  double coef;
+  int numerator, denominator;
   std::vector<int> power;
   unsigned long long hash;
   node_pol *prev, *next;
