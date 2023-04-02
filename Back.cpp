@@ -282,14 +282,12 @@ node_pol *CreatePol(std::string input) {
     q->power.resize(ALPH);
     std::string str;
     bool sign = false;
-    while (!(input[i] >= 'a' && input[i] <= 'z') && i < input.length()) {
-      if (input[i] == '+' || input[i] == '-') {
-        if (sign) {
-          break;
-        } else {
-          sign = true;
-        }
-      }
+    if (input[i] == '+' || input[i] == '-') {
+      str += input[i];
+      ++i;
+    }
+    while (!(input[i] >= 'a' && input[i] <= 'z') && i < input.length() &&
+           input[i] != '+' && input[i] != '-') {
       str += input[i];
       ++i;
     }
@@ -300,7 +298,10 @@ node_pol *CreatePol(std::string input) {
       delete q;
       continue;
     }
-    q->numerator = std::stod(str);
+    if (str == "")
+      q->numerator = 0;
+    else
+      q->numerator = std::stod(str);
     q->denominator = 1;
     str = "";
     while (input[i] != '-' && input[i] != '+' && i < input.length()) {
@@ -362,9 +363,189 @@ void AddToBase(node_list *&base, node_list *&base_end, std::string input) {
   new_pol->color = false;
   new_pol->next = nullptr;
   new_pol->prev = base_end;
-  if (base_end == nullptr) base_end = new_pol;
-  else
-    base_end->next = new_pol;
+  if (base_end != nullptr) base_end->next = new_pol;
   if (base == nullptr) base = new_pol;
+  base_end = new_pol;
   return;
+}
+
+
+bool Compare(node_pol *&first, node_pol *&second) {
+  node_pol *q = second;
+  for (node_pol *p = first; p != nullptr; p = p->next) {
+    if (p->hash == q->hash && p->numerator == q->numerator &&
+        p->denominator == q->denominator) {
+      q = q->next;
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
+int gcd(int a, int b) {
+  while (b) {
+    a %= b;
+    std::swap(a, b);
+  }
+  return a;
+}
+
+node_pol* Plus(node_pol *&first, node_pol *&second) { 
+  node_pol *ans = nullptr, *ans_end = nullptr;
+  for (node_pol *p = first; p != nullptr; p = p->next) {
+    node_pol *t = new node_pol;
+    t->denominator = p->denominator;
+    t->numerator = p->numerator;
+    t->hash = p->hash;
+    t->power = p->power;
+    if (ans == nullptr) {
+      ans = t;
+    }
+    t->next = nullptr;
+    t->prev = ans_end;
+    if (ans_end != nullptr) ans_end->next = t;
+    ans_end = t;
+  }
+
+  for (node_pol *p = second; p != nullptr; p = p->next) {
+    node_pol *t = new node_pol;
+    t->denominator = p->denominator;
+    t->numerator = p->numerator;
+    t->hash = p->hash;
+    t->power = p->power;
+    if (ans == nullptr) {
+      ans = t;
+    }
+    t->next = nullptr;
+    t->prev = ans_end;
+    if (ans_end != nullptr) ans_end->next = t;
+    ans_end = t;
+  }
+
+  merge_sort(ans, ans_end);
+
+
+   for (node_pol *t = ans; t != nullptr;) {
+    if (t->next != nullptr) {
+      if (t->hash == t->next->hash) {
+        int den = t->denominator * t->next->denominator /
+                  gcd(t->denominator, t->next->denominator);
+        int coef_1 = den / t->denominator;
+        int coef_2 = den / t->next->denominator;
+        int num = coef_1 * t->numerator + coef_2 * t->next->numerator;
+        int coef = gcd(den, num);
+        num = num / coef;
+        den = den / coef;
+        t->numerator = num;
+        t->denominator = den;
+        DeleteFromPol(ans, t->next, 1);
+        if (t->numerator == 0) {
+          DeleteFromPol(ans, t, 2);
+        } else {
+          t = t->next;
+        }
+      } else {
+        t = t->next;
+      }
+    } else {
+      t = t->next;
+    }
+  }
+  return ans;
+}
+
+std::string PtrToString(node_pol* L) {
+  std::string pol_str = "";
+  for (node_pol *q = L; q != nullptr; q = q->next) {
+    if (double(q->numerator) / q->denominator > 0 && pol_str.length() != 0) {
+      pol_str += '+';
+    }
+
+    std::string res = "";
+    if (q->numerator != 0) {
+      if (q->denominator == 1) {
+        res = std::to_string(q->numerator);
+      } else {
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2)
+               << double(q->numerator) / q->denominator;
+        std::string s = stream.str();
+      }
+    }
+
+    pol_str += res;
+
+    for (int i = 0; i < q->power.size(); ++i) {
+      if (q->power[i] != 0) {
+        char ch = i + 'a';
+        pol_str += ch;
+        if (q->power[i] != 1) {
+          pol_str += '^' + std::to_string(q->power[i]);
+        }
+      }
+    }
+  }
+  return pol_str;
+}
+
+node_pol *Mult(node_pol *&first, node_pol *&second) {
+  node_pol *ans = nullptr, *ans_end = nullptr;
+  for (node_pol *p = first; p != nullptr; p = p->next) {
+    for (node_pol *q = second; q != nullptr; q = q->next) {
+      node_pol *t = new node_pol;
+      t->numerator = q->numerator * p->numerator;
+      t->denominator = q->denominator * p->denominator;
+      int coef = gcd(t->denominator, t->numerator);
+      t->numerator = t->numerator / coef;
+      t->denominator = t->denominator / coef;
+      std::vector<int> power(ALPH);
+      int hash = 0;
+      int pow = 1;
+      for (int i = 0; i < ALPH; ++i) {
+        power[i] = q->power[i] + p->power[i];
+        hash += pow * power[i];
+        pow *= 2;
+      }
+      t->power = power;
+      t->hash = hash;
+      if (ans == nullptr) {
+        ans = t;
+      }
+      t->next = nullptr;
+      t->prev = ans_end;
+      if (ans_end != nullptr) ans_end->next = t;
+      ans_end = t;
+    }
+  }
+  merge_sort(ans, ans_end);
+
+  for (node_pol *t = ans; t != nullptr;) {
+    if (t->next != nullptr) {
+      if (t->hash == t->next->hash) {
+        int den = t->denominator * t->next->denominator /
+                  gcd(t->denominator, t->next->denominator);
+        int coef_1 = den / t->denominator;
+        int coef_2 = den / t->next->denominator;
+        int num = coef_1 * t->numerator + coef_2 * t->next->numerator;
+        int coef = gcd(den, num);
+        num = num / coef;
+        den = den / coef;
+        t->numerator = num;
+        t->denominator = den;
+        DeleteFromPol(ans, t->next, 1);
+        if (t->numerator == 0) {
+          DeleteFromPol(ans, t, 2);
+        } else {
+          t = t->next;
+        }
+      } else {
+        t = t->next;
+      }
+    } else {
+      t = t->next;
+    }
+  }
+
+  return ans;
 }

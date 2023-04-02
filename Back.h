@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 enum class States { StateH, StateA, StateB, StateC, StateD, StateE };
 
@@ -34,5 +36,10 @@ void DeleteFromPol(node_pol *&L, node_pol *&p, int call);
 node_pol *CreatePol(std::string input);
 void AddToBase(node_list *&base, node_list *&base_end, std::string input);
 
+bool Compare(node_pol *&first, node_pol *&second);
+node_pol* Plus(node_pol *&first, node_pol *&second);
+node_pol *Mult(node_pol *&first, node_pol *&second);
+
+std::string PtrToString(node_pol *L);
 
 

@@ -6,11 +6,12 @@
 #include "Front.h"
 #include "Back.h"
 
-// проблема с кнопкой в информационном окне
+
 // нормальный перенос строки в информационном окне
-// хранение числителя и знаменателя
 // вылезание за строку поля 
-// нормальное выведение многочлена 
+// состояния кнопок
+// если не было добавления в базу, то очистить память
+// проверить сортировку
 
 extern Button button_enter;
 extern Button button_del;
@@ -26,6 +27,7 @@ extern Button button_add;
 extern Button button_clear;
 
 extern std::vector<Field> printpol;
+extern Field field_out;
 
 node_list *base = nullptr, *base_end = nullptr;
 
@@ -96,9 +98,11 @@ void button_enter_click() {
            error = "";
          } else {
            AddToBase(base, base_end, input);
+           printpol.clear();
            UpdatePolinomials(base);
            w.close();
          }
+         field_enter.clicked = false;
        }
      }
      w.clear(sf::Color(255, 255, 255));
@@ -111,50 +115,143 @@ void button_enter_click() {
 int main() {
   int width = 1200;
   int height = 800;
+  std::vector<Field*> selected;
+  int operation = -1;
+  std::string answer = "";
   sf::RenderWindow window(sf::VideoMode(width, height), "Polinomials");
   while (window.isOpen()) {
     sf::Event event;
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) window.close();
+      // 1
       if (button_enter.OnClicked(event)) {
         button_enter_click();
       }
+      // 2
       if (button_del.OnClicked(event)) {
 
       }
+      // 3
       if (button_func.OnClicked(event)) {
+        if (selected.size() > 0) {
 
+        }
       }
+      // 4
       if (button_comp.OnClicked(event)) {
-
+        if (selected.size() > 0) {
+          operation = 4;
+          button_comp.state = 2;
+        }
       }
+      // 5
       if (button_plus.OnClicked(event)) {
-
+        if (selected.size() > 0) {
+          operation = 5;
+          button_plus.state = 2;
+        }
       }
+      // 6
       if (button_mult.OnClicked(event)) {
-
+        if (selected.size() > 0) {
+          operation = 6;
+          button_mult.state = 2;
+        }
       }
+      // 7
       if (button_deriv.OnClicked(event)) {
-
       }
+      // 8
       if (button_div.OnClicked(event)) {
 
-      } 
-      if (button_add.OnClicked(event)) {
-
       }
+      // 9
+      if (button_add.OnClicked(event)) {
+        operation = 9;
+      }
+      // 10
       if (button_clear.OnClicked(event)) {
-
+        answer = "";
+        if (selected.size() > 0)
+          selected[0]->SetColorText(false);
+        else if (selected.size() == 2)
+          selected[1]->SetColorText(false);
+        selected.clear();
+        button_comp.state = 0;
+        button_del.state = 0;
+        button_div.state = 0;
+        button_mult.state = 0;
+        button_plus.state = 0;
+        button_add.state = 0;
+        operation = -1;
       }
       for (int i = 0; i < printpol.size(); ++i) {
         if (printpol[i].OnClicked(event)) {
-          printpol[i].SetColorText(true);
+          if (selected.size() == 0) {
+            printpol[i].SetColorText(true);
+            selected.push_back(&printpol[i]);
+          } 
+          else if (operation != -1 && selected.size() == 1) {
+            printpol[i].SetColorText(true);
+            selected.push_back(&printpol[i]);
+          }
         }
       }
+    }
+    if (operation == 2) {
+    
+    } else if (operation == 3) {
+    
+    } else if (operation == 4 && selected.size() == 2) {
+      bool ans = Compare(selected[0]->pol, selected[1]->pol);
+      if (ans)
+        answer = "TRUE";
+      else
+        answer = "FALSE";
+     
+      button_comp.state = 0;
+      selected[0]->SetColorText(false);
+      selected[1]->SetColorText(false);
+      selected.clear();
+      operation = -1;
+    } else if (operation == 5 && selected.size() == 2) {
+      node_pol *ans = Plus(selected[0]->pol, selected[1]->pol);
+      answer = PtrToString(ans);
+      button_plus.state = 0;
+      selected[0]->SetColorText(false);
+      selected[1]->SetColorText(false);
+      selected.clear();
+      operation = -1;
+      button_add.state = 1;
+    } else if (operation == 6 && selected.size() == 2) {
+      node_pol *ans = Mult(selected[0]->pol, selected[1]->pol);
+      answer = PtrToString(ans);
+      button_mult.state = 0;
+      selected[0]->SetColorText(false);
+      selected[1]->SetColorText(false);
+      selected.clear();
+      operation = -1;
+      button_add.state = 1;
+    } else if (operation == 7) {
+
+    } else if (operation == 8) {
+    
+    } else if (operation == 9) {
+      if (button_add.state == 1) {
+        if (answer != "") {
+          AddToBase(base, base_end, answer);
+          printpol.clear();
+          UpdatePolinomials(base);
+          answer = "";
+          button_add.state = 0;
+        }
+      }
+      operation = -1;
     }
     window.clear(sf::Color(255, 255, 255, 0));
     Interface(window);
     PrintPolinomials(window);
+    field_out.PrintAnswer(window, answer);
     window.display();
   }
 

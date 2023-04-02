@@ -44,10 +44,8 @@ Button::Button(double input_x, double input_y, int input_width,
   SetButton(input_x, input_y, input_width, input_heigth);
 }
 
-void Button::SetColor(int input_r, int input_g, int input_b) {
-  r = input_r;
-  g = input_g;
-  b = input_b;
+void Button::SetColor(sf::Color input_color) {
+  color = input_color;
   return;
 }
 
@@ -63,7 +61,7 @@ void Button::SetText(std::string input_text, sf::RenderWindow& window,
 
 void Button::DrawButton(sf::RenderWindow& window) {
   sf::RectangleShape shape(sf::Vector2f(width, heigth));
-  shape.setFillColor(sf::Color(r, g, b));
+  shape.setFillColor(color);
   shape.move(x, y);
   window.draw(shape);
   return;
@@ -118,17 +116,7 @@ void Field::SetFrame(int input_frame, int input_frame_r, int input_frame_g,
   return;
 }
 
-void Field::DrawField(sf::RenderWindow& window, double &coord_y) {
-  if (text.size() != 0) {
-    int count = (width - 4) / 11;
-    while (text[text.size() - 1].length() > count) {
-      std::string push = text[text.size() - 1].substr(count);
-      text[text.size() - 1] = text[text.size() - 1].substr(0, count);
-      text.push_back(push);
-    }
-    heigth = 20 * text.size();
-  }
-
+void Field::DrawField(sf::RenderWindow& window) {
   int frame_heigth = heigth + 2 * frame;
   int frame_width = width + 2 * frame;
   double frame_x = x - frame;
@@ -142,15 +130,6 @@ void Field::DrawField(sf::RenderWindow& window, double &coord_y) {
   shape.setFillColor(sf::Color(r, g, b));
   shape.move(x, y);
   window.draw(shape);
-
-  int text_r = 0;
-  if (color_text) {
-    text_r = 255;
-  }
-  for (int i = 0; i < text.size(); ++i) {
-    PrintText(window, 52, coord_y, text[i], text_r, 0, 0);
-    coord_y += 20;
-  }
   return;
 }
 
@@ -158,6 +137,30 @@ void Field::SetText(std::string input_text) {
   text.clear();
   text.push_back(input_text);
   return;
+}
+
+void Field::DrawPolinomial(sf::RenderWindow& window, double &coord) {
+  int count = (width - 4) / 11;
+  while (text[text.size() - 1].length() > count) {
+    std::string push = text[text.size() - 1].substr(count);
+    text[text.size() - 1] = text[text.size() - 1].substr(0, count);
+    text.push_back(push);
+  }
+  heigth = 24 * text.size();
+
+  sf::RectangleShape shape(sf::Vector2f(width, heigth));
+  shape.setFillColor(sf::Color(r, g, b));
+  shape.move(x, y);
+  window.draw(shape);
+
+  int text_r = 0;
+  if (color_text) {
+    text_r = 255;
+  }
+  for (int i = 0; i < text.size(); ++i) {
+    PrintText(window, 51, coord + 2, text[i], text_r, 0, 0);
+    coord += 24;
+  }
 }
 
 void Field::SetColorText(bool input_color) {
@@ -195,70 +198,76 @@ Button button_load(1050, 160, 100, 60);
 Button button_add(750, 690, 100, 60);
 Button button_clear(900, 690, 100, 60);
 
+Field field_out(600, 380, 550, 260, false);
+
 void Interface(sf::RenderWindow& window) { 
 
-  button_enter.SetColor(192, 192, 192);
+  std::vector<sf::Color> colors(3);
+  colors[0] = sf::Color(192, 192, 192);
+  colors[1] = sf::Color(119, 136, 153);
+  colors[2] = sf::Color(0, 255, 127);
+
+  button_enter.SetColor(colors[button_enter.state]);
   button_enter.DrawButton(window);
   button_enter.SetText("enter", window, 0, 0, 0);
 
-  button_del.SetColor(192, 192, 192);
+  button_del.SetColor(colors[button_del.state]);
   button_del.DrawButton(window);
   button_del.SetText("del", window, 0, 0, 0);
 
-  button_func.SetColor(192, 192, 192);
+  button_func.SetColor(colors[button_func.state]);
   button_func.DrawButton(window);
   button_func.SetText("f()", window, 0, 0, 0);
 
-  button_comp.SetColor(192, 192, 192);
+  button_comp.SetColor(colors[button_comp.state]);
   button_comp.DrawButton(window);
   button_comp.SetText("compare", window, 0, 0, 0);
 
-  button_plus.SetColor(192, 192, 192);
+  button_plus.SetColor(colors[button_plus.state]);
   button_plus.DrawButton(window);
   button_plus.SetText("+", window, 0, 0, 0);
 
-  button_mult.SetColor(192, 192, 192);
+  button_mult.SetColor(colors[button_mult.state]);
   button_mult.DrawButton(window);
   button_mult.SetText("*", window, 0, 0, 0);
 
-  button_deriv.SetColor(192, 192, 192);
+  button_deriv.SetColor(colors[button_deriv.state]);
   button_deriv.DrawButton(window);
   button_deriv.SetText("f'", window, 0, 0, 0);
 
-  button_div.SetColor(192, 192, 192);
+  button_div.SetColor(colors[button_div.state]);
   button_div.DrawButton(window);
   button_div.SetText("/", window, 0, 0, 0);
 
-  button_roots.SetColor(192, 192, 192);
+  button_roots.SetColor(colors[button_roots.state]);
   button_roots.DrawButton(window);
   button_roots.SetText("roots", window, 0, 0, 0);
 
-  button_save.SetColor(192, 192, 192);
+  button_save.SetColor(colors[button_save.state]);
   button_save.DrawButton(window);
   button_save.SetText("save", window, 0, 0, 0);
 
-  button_load.SetColor(192, 192, 192);
+  button_load.SetColor(colors[button_load.state]);
   button_load.DrawButton(window);
   button_load.SetText("load", window, 0, 0, 0);
 
-  button_add.SetColor(105, 105, 105);
+  button_add.SetColor(colors[button_add.state]);
   button_add.DrawButton(window);
-  button_add.SetText("ADD", window, 255, 255, 255);
+  button_add.SetText("ADD", window, 0, 0, 0);
 
-  button_clear.SetColor(105, 105, 105);
+  button_clear.state = 1;
+  button_clear.SetColor(colors[button_clear.state]);
   button_clear.DrawButton(window);
-  button_clear.SetText("CLEAR", window, 255, 255, 255);
+  button_clear.SetText("CLEAR", window, 0, 0, 0);
 
-  double coord_y = 0;
   Field field_in(50, 50, 500, 700, false);
   field_in.SetColor(255, 255, 255);
   field_in.SetFrame(2, 105, 105, 105);
-  field_in.DrawField(window, coord_y);
+  field_in.DrawField(window);
 
-  Field field_out(600, 380, 550, 260, false);
   field_out.SetColor(255, 255, 255);
   field_out.SetFrame(2, 105, 105, 105);
-  field_out.DrawField(window, coord_y);
+  field_out.DrawField(window);
 
   return;
 }
@@ -274,12 +283,11 @@ void Interface_enter(sf::RenderWindow& window, std::string input) {
   else {
     field_enter.SetColor(255, 255, 255);
   }
-  double coord_y = 0;
-  field_enter.DrawField(window, coord_y);
+  field_enter.DrawField(window);
   PrintText(window, 50, 32, "Enter a polinomial:", 0, 0, 0);
   PrintText(window, 52, 116, input, 0, 0, 0);
 
-  button_enter_ok.SetColor(192, 192, 192);
+  button_enter_ok.SetColor(sf::Color(192, 192, 192));
   button_enter_ok.DrawButton(window);
   button_enter_ok.SetText("OK", window, 0, 0, 0);
 
@@ -297,12 +305,16 @@ void Information_window(std::string input, std::string error) {
     errors.push_back(temp);
   }
   errors.push_back(error);
-  Button information_ok(250, 200, 100, 60);
   sf::RenderWindow w(sf::VideoMode(width, height), "ERROR");
+  Button information_ok(250, 200, 100, 60);
+  information_ok.SetColor(sf::Color(192, 192, 192));
   while (w.isOpen()) {
     sf::Event event;
     while (w.pollEvent(event)) {
       if (event.type == sf::Event::Closed) w.close();
+      if (information_ok.OnClicked(event)){
+        w.close();
+      }
     }
     w.clear(sf::Color(255, 255, 255, 0));
     PrintText(w, 50, 50, input, 0, 0, 0);
@@ -314,6 +326,8 @@ void Information_window(std::string input, std::string error) {
         if (errors[i][k] == '\n') ++j;
       }
     }
+    information_ok.DrawButton(w);
+    information_ok.SetText("OK", w, 0, 0, 0);
     w.display();
   }
   return;
@@ -354,9 +368,10 @@ void UpdatePolinomials(node_list*&L) {
         }
       }
     }
-    Field field(50, 50 + k * 20, 500, 0, false);
+    Field field(51, 51 + k * 24, 498, 0, false);
     field.SetColor(255, 255, 255);
     field.SetText(pol_str);
+    field.pol = p->pol;
     printpol.push_back(field);
     ++k;
   }
@@ -364,9 +379,23 @@ void UpdatePolinomials(node_list*&L) {
 }
 
 void PrintPolinomials(sf::RenderWindow& window) {
-  double coord_y = 51;
+  double coord = 51;
   for (int i = 0; i < printpol.size(); ++i) {
-    printpol[i].DrawField(window, coord_y);
+    printpol[i].DrawPolinomial(window, coord);
+  }
+  return;
+}
+
+void Field::PrintAnswer(sf::RenderWindow& window, std::string str) { 
+  field_out.SetText(str);
+  int count = (width - 4) / 11;
+  while (text[text.size() - 1].length() > count) {
+    std::string push = text[text.size() - 1].substr(count);
+    text[text.size() - 1] = text[text.size() - 1].substr(0, count);
+    text.push_back(push);
+  }
+  for (int i = 0; i < text.size(); ++i) {
+    PrintText(window, 601, 382 + 24 * i, text[i], 0, 0, 0);
   }
   return;
 }

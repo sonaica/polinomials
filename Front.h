@@ -12,14 +12,18 @@ class Button {
  private:
   double x, y;
   int heigth, width;
-  int r, g, b;
+  sf::Color color;
   std::string text;
 
  public:
+  int state = 0;
+  // 0 - неактивно
+  // 1 - активно
+  // 2 - выбрано
   Button(double input_x, double input_y, int input_heigth, int input_width);
   void SetButton(double input_x, double input_y, int input_heigth,
                  int input_width);
-  void SetColor(int input_r, int input_g, int input_b);
+  void SetColor(sf::Color input_color);
   void SetText(std::string input_text, sf::RenderWindow &window, int text_r, int text_g, int text_b);
   void DrawButton(sf::RenderWindow &window);
   bool OnClicked(sf::Event &event);
@@ -37,15 +41,18 @@ class Field {
     bool color_text = false;
     
   public:
+    node_pol *pol;
     bool clicked;
     Field(double input_x, double input_y, int input_heigth, int input_width, bool input_clicked);
     void SetField(double input_x, double input_y, int input_heigth, int input_width, bool input_clicked);
     void SetColor(int input_r, int input_g, int input_b);
     void SetFrame(int input_frame, int input_frame_r, int input_frame_g, int input_frame_b);
-    void DrawField(sf::RenderWindow &window, double &coord_y);
+    void DrawField(sf::RenderWindow &window);
     bool OnClicked(sf::Event &event);
     void SetText(std::string input_text);
     void SetColorText(bool input_color);
+    void DrawPolinomial(sf::RenderWindow &window, double &coord);
+    void PrintAnswer(sf::RenderWindow &window, std::string str);
 
 };
 
