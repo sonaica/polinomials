@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <set>
 #include "Back.h"
 
 //width - 1200
@@ -372,6 +373,7 @@ void UpdatePolinomials(node_list*&L) {
     field.SetColor(255, 255, 255);
     field.SetText(pol_str);
     field.pol = p->pol;
+    field.var = p->var;
     printpol.push_back(field);
     ++k;
   }
@@ -386,7 +388,7 @@ void PrintPolinomials(sf::RenderWindow& window) {
   return;
 }
 
-void Field::PrintAnswer(sf::RenderWindow& window, std::string str) { 
+void Field::PrintAnswer(sf::RenderWindow& window, std::string str, double coord) { 
   field_out.SetText(str);
   int count = (width - 4) / 11;
   while (text[text.size() - 1].length() > count) {
@@ -395,7 +397,59 @@ void Field::PrintAnswer(sf::RenderWindow& window, std::string str) {
     text.push_back(push);
   }
   for (int i = 0; i < text.size(); ++i) {
-    PrintText(window, 601, 382 + 24 * i, text[i], 0, 0, 0);
+    PrintText(window, 601, coord + 382 + 24 * i, text[i], 0, 0, 0);
   }
   return;
 }
+
+Field field_func(50, 100, 500, 50, false);
+Button button_func_ok(250, 200, 100, 60);
+
+void Interface_func(sf::RenderWindow& window, int symb, std::string input) {
+  std::string ch(1, symb + 'a');
+  PrintText(window, 294.5, 30, ch, 0, 0, 0);
+  field_func.SetFrame(2, 105, 105, 105);
+  if (field_func.clicked) {
+    field_func.SetColor(211, 211, 211);
+  }
+  else {
+    field_func.SetColor(255, 255, 255);
+  }
+  field_func.DrawField(window);
+  PrintText(window, 52, 116, input, 0, 0, 0);
+
+  button_func_ok.SetColor(sf::Color(192, 192, 192));
+  button_func_ok.DrawButton(window);
+  button_func_ok.SetText("OK", window, 0, 0, 0);
+
+  return;
+}
+
+std::vector<std::pair<Field, int>> var_arr;
+
+void CreateFields(int size, std::set<int>v) {
+  std::set<int>::iterator it = v.begin();
+  for (int i = 0; i < size; ++i) {
+    Field field(1, 1 + i * 31, 100, 30, false);
+    field.SetFrame(1, 105, 105, 105);
+    var_arr.push_back({field, *it});
+      ++it;
+  }
+  return;
+}
+
+void Interface_deriv(sf::RenderWindow &window) {
+  for (int i = 0; i < var_arr.size(); ++i) {
+    if (var_arr[i].first.clicked) {
+      var_arr[i].first.SetColor(0, 255, 127);
+    }
+    else {
+      var_arr[i].first.SetColor(192, 192, 192);
+    }
+    var_arr[i].first.DrawField(window);
+    std::string symb(1, var_arr[i].second + 'a');
+    PrintText(window, (100 - 11) / 2.0, 6 + 30 * i, symb, 0, 0, 0);
+  }
+  return;
+}
+

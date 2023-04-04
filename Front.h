@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
+#include <set>
 #include "Back.h"
 
 class Button {
@@ -43,6 +44,7 @@ class Field {
   public:
     node_pol *pol;
     bool clicked;
+    std::set<int> var;
     Field(double input_x, double input_y, int input_heigth, int input_width, bool input_clicked);
     void SetField(double input_x, double input_y, int input_heigth, int input_width, bool input_clicked);
     void SetColor(int input_r, int input_g, int input_b);
@@ -52,7 +54,7 @@ class Field {
     void SetText(std::string input_text);
     void SetColorText(bool input_color);
     void DrawPolinomial(sf::RenderWindow &window, double &coord);
-    void PrintAnswer(sf::RenderWindow &window, std::string str);
+    void PrintAnswer(sf::RenderWindow &window, std::string str, double coord);
 
 };
 
@@ -62,3 +64,8 @@ void Interface_enter(sf::RenderWindow &window, std::string input);
 void Information_window(std::string input, std::string error);
 void PrintPolinomials(sf::RenderWindow &window);
 void UpdatePolinomials(node_list *&L);
+
+void Interface_func(sf::RenderWindow &window, int symb, std::string input);
+void CreateFields(int size, std::set<int>v);
+void Interface_deriv(sf::RenderWindow &window);
+
