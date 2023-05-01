@@ -5,7 +5,6 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <set>
 #include "Back.h"
 
 //width - 1200
@@ -137,16 +136,17 @@ void Field::DrawField(sf::RenderWindow& window) {
 void Field::SetText(std::string input_text) {
   text.clear();
   text.push_back(input_text);
-  return;
-}
 
-void Field::DrawPolinomial(sf::RenderWindow& window, double &coord) {
   int count = (width - 4) / 11;
   while (text[text.size() - 1].length() > count) {
     std::string push = text[text.size() - 1].substr(count);
     text[text.size() - 1] = text[text.size() - 1].substr(0, count);
     text.push_back(push);
   }
+  return;
+}
+
+void Field::DrawPolinomial(sf::RenderWindow& window, double &coord) {
   heigth = 24 * text.size();
 
   sf::RectangleShape shape(sf::Vector2f(width, heigth));
@@ -159,7 +159,7 @@ void Field::DrawPolinomial(sf::RenderWindow& window, double &coord) {
     text_r = 255;
   }
   for (int i = 0; i < text.size(); ++i) {
-    PrintText(window, 51, coord + 2, text[i], text_r, 0, 0);
+    PrintText(window, x + 1, coord + 2, text[i], text_r, 0, 0);
     coord += 24;
   }
 }
@@ -346,15 +346,14 @@ void UpdatePolinomials(node_list*&L) {
       }
 
       std::string res = "";
-      if (q->numerator != 0) {
-        if (q->denominator == 1) {
-          res = std::to_string(q->numerator);
-        } else {
-          std::stringstream stream;
-          stream << std::fixed << std::setprecision(2)
-                 << double(q->numerator) / q->denominator;
-          std::string s = stream.str();
-        }
+
+      if (q->denominator == 1 || q->denominator == 0) {
+        res = std::to_string(q->numerator);
+      } else {
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2)
+               << double(q->numerator) / q->denominator;
+        res = stream.str();
       }
      
       pol_str += res;
@@ -375,7 +374,7 @@ void UpdatePolinomials(node_list*&L) {
     field.pol = p->pol;
     field.var = p->var;
     printpol.push_back(field);
-    ++k;
+    k += field.text.size();
   }
   return;
 }
@@ -425,31 +424,74 @@ void Interface_func(sf::RenderWindow& window, int symb, std::string input) {
   return;
 }
 
-std::vector<std::pair<Field, int>> var_arr;
+std::vector<std::pair<Button, int>> var_arr;
 
-void CreateFields(int size, std::set<int>v) {
-  std::set<int>::iterator it = v.begin();
-  for (int i = 0; i < size; ++i) {
-    Field field(1, 1 + i * 31, 100, 30, false);
-    field.SetFrame(1, 105, 105, 105);
-    var_arr.push_back({field, *it});
-      ++it;
+void CreateFields(std::vector<bool>var) {
+  int k = 0;
+  for (int i = 0; i < var.size(); ++i) {
+    if (var[i]) {
+      Button button(1, 1 + k * 31, 100, 30);
+      button.state = 0;
+      var_arr.push_back({button, i});
+      ++k;
+    }
   }
   return;
 }
 
-void Interface_deriv(sf::RenderWindow &window) {
+void Interface_deriv(sf::RenderWindow& window) {
   for (int i = 0; i < var_arr.size(); ++i) {
-    if (var_arr[i].first.clicked) {
-      var_arr[i].first.SetColor(0, 255, 127);
-    }
-    else {
-      var_arr[i].first.SetColor(192, 192, 192);
-    }
-    var_arr[i].first.DrawField(window);
+    std::vector<sf::Color> colors(3);
+    colors[0] = sf::Color(192, 192, 192);
+    colors[1] = sf::Color(119, 136, 153);
+    colors[2] = sf::Color(0, 255, 127);
+    var_arr[i].first.SetColor(colors[var_arr[i].first.state]);
+    var_arr[i].first.DrawButton(window);
     std::string symb(1, var_arr[i].second + 'a');
-    PrintText(window, (100 - 11) / 2.0, 6 + 30 * i, symb, 0, 0, 0);
+    var_arr[i].first.SetText(symb, window, 0, 0, 0);
   }
+  return;
+}
+
+Field field_name(50, 100, 500, 50, false);
+Button button_name_ok(250, 200, 100, 60);
+
+void Interface_file(sf::RenderWindow& window, std::string input) {
+  field_name.SetFrame(2, 105, 105, 105);
+  if (field_name.clicked) {
+    field_name.SetColor(211, 211, 211);
+  } else {
+    field_name.SetColor(255, 255, 255);
+  }
+  field_name.DrawField(window);
+  PrintText(window, 50, 32, "Enter a file name:", 0, 0, 0);
+  PrintText(window, 52, 116, input, 0, 0, 0);
+
+  button_name_ok.SetColor(sf::Color(192, 192, 192));
+  button_name_ok.DrawButton(window);
+  button_name_ok.SetText("OK", window, 0, 0, 0);
+
+  return;
+}
+
+Field field_numder(50, 100, 500, 50, false);
+Button button_numder_ok(250, 200, 100, 60);
+
+void Interface_numder(sf::RenderWindow& window, std::string input) {
+  field_numder.SetFrame(2, 105, 105, 105);
+  if (field_numder.clicked) {
+    field_numder.SetColor(211, 211, 211);
+  } else {
+    field_numder.SetColor(255, 255, 255);
+  }
+  field_numder.DrawField(window);
+  PrintText(window, 50, 32, "Enter a derivative number:", 0, 0, 0);
+  PrintText(window, 52, 116, input, 0, 0, 0);
+
+  button_numder_ok.SetColor(sf::Color(192, 192, 192));
+  button_numder_ok.DrawButton(window);
+  button_numder_ok.SetText("OK", window, 0, 0, 0);
+
   return;
 }
 
