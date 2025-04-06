@@ -10,15 +10,6 @@
 #include "Back.h"
 #include "windows.h"
 
-
-// подсветка полиномов
-
-
-// 0 при вводе 
-// производная от константы 
-// clear
-
-
 extern Button button_enter;
 extern Button button_del;
 extern Button button_func;
